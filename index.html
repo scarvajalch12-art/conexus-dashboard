@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conexus Group | Operations & Performance Analytics</title>
+    <!-- SheetJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-red: #9f1239;
+            --primary-red-hover: #be123c;
+            --gradient-header: linear-gradient(135deg, #881337 0%, #4c0519 100%);
+            --page-bg: #fff1f2;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-red: #fecdd3;
+            --danger-bg: #ffe4e6;
+            --danger-text: #e11d48;
+            --success-bg: #f0fdf4;
+            --success-text: #16a34a;
+            --warning-bg: #fef3c7;
+            --warning-text: #d97706;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--page-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header-bar {
+            background: var(--gradient-header);
+            color: white;
+            padding: 22px 30px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(159, 18, 57, 0.25);
+            margin-bottom: 20px;
+            border-bottom: 4px solid #f43f5e;
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .header-title p {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            color: #fecdd3;
+        }
+
+        .btn-upload {
+            background-color: #f43f5e;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 10px rgba(244, 63, 94, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn-upload:hover {
+            background-color: #e11d48;
+        }
+
+        .filter-card {
+            background: var(--card-bg);
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid var(--border-red);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(159, 18, 57, 0.06);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--primary-red);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: #be123c;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #fda4af;
+            border-radius: 8px;
+            font-size: 13px;
+            background-color: #fff1f2;
+            color: #881337;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .filter-group select[multiple] {
+            height: 95px;
+            background-color: #ffffff;
+        }
+
+        .btn-reset {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid #fecdd3;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 16px;
+            border-radius: 14px;
+            border-left: 5px solid var(--primary-red);
+            border-top: 1px solid var(--border-red);
+            border-right: 1px solid var(--border-red);
+            border-bottom: 1px solid var(--border-red);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .kpi-label {
+            font-size: 10px;
+            color: #be123c;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 900;
+            margin: 6px 0 2px 0;
+            color: #881337;
+        }
+
+        .kpi-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .heatmap-card {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            border: 1px solid var(--border-red);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(159, 18, 57, 0.05);
+        }
+
+        .heatmap-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .heatmap-title-text {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--primary-red);
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #fff1f2;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #fecdd3;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-box {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(14, 1fr);
+            gap: 4px;
+            overflow-x: auto;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .heatmap-cell {
+            padding: 8px 4px;
+            border-radius: 4px;
+            font-weight: 700;
+            color: #1e293b;
+            background-color: #f1f5f9;
+        }
+
+        .heatmap-header {
+            background-color: #ffe4e6;
+            color: #881337;
+            font-weight: 800;
+        }
+
+        .heat-0 { background-color: #f1f5f9; color: #94a3b8; }
+        .heat-low { background-color: #fef08a; color: #854d0e; }
+        .heat-mid { background-color: #f87171; color: white; }
+        .heat-high { background-color: #9f1239; color: white; }
+
+        .inflow-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .inflow-grid-2col { grid-template-columns: 1fr; }
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 6px;
+            border-bottom: 3px solid #fecdd3;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 12px 22px;
+            border: none;
+            background: #ffe4e6;
+            font-weight: 700;
+            color: #9f1239;
+            cursor: pointer;
+            border-radius: 10px 10px 0 0;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: var(--primary-red);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid var(--border-red);
+            overflow-x: auto;
+            max-height: 580px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: #fff1f2;
+            color: #881337;
+            padding: 14px 16px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            font-weight: 800;
+            border-bottom: 2px solid #fecdd3;
+            z-index: 10;
+        }
+
+        td {
+            padding: 11px 16px;
+            border-bottom: 1px solid #ffe4e6;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: #ffe4e6;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            display: inline-block;
+        }
+
+        .badge-ok { background-color: var(--success-bg); color: var(--success-text); }
+        .badge-danger { background-color: var(--danger-bg); color: var(--danger-text); }
+        .badge-warning { background-color: #fef3c7; color: var(--warning-text); }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <div class="header-title">
+            <h1>🔴 Conexus Group | Operations & Performance Analytics</h1>
+            <p>Control de Horarios, Métricas de Conexión & Rendimiento Operativo</p>
+        </div>
+        <div>
+            <button class="btn-upload" onclick="document.getElementById('excelFile').click()">
+                📁 Cargar Excel (.xlsx)
+            </button>
+            <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden" onchange="processWorkbook(event)">
+        </div>
+    </div>
+
+    <!-- Panel de Filtros -->
+    <div class="filter-card">
+        <div class="filter-header">
+            <strong>🔍 Filtros Dinámicos Multiselección</strong>
+            <button class="btn-reset" onclick="resetFilters()">🔄 Restaurar Filtros</button>
+        </div>
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>Cuenta</label>
+                <select id="filterAccount" onchange="applyFilters()">
+                    <option value="ALL">Todas las Cuentas</option>
+                    <option value="Adium">Adium / Adium con voz</option>
+                    <option value="Abox">Abox</option>
+                    <option value="GSK">GSK</option>
+                    <option value="Haleon">Haleon</option>
+                    <option value="Asofarma">Asofarma</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Teleoperador</label>
+                <select id="filterAgent" multiple onchange="applyFilters()">
+                    <option value="Johan Rojas">Johan Rojas (jrojas)</option>
+                    <option value="Kristel Azofeifa">Kristel Azofeifa (kristel)</option>
+                    <option value="Paula Garces">Paula Garces (pgarces)</option>
+                    <option value="Esteban Gutierrez">Esteban Gutierrez (esteban)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Año</label>
+                <select id="filterYear" onchange="applyFilters()">
+                    <option value="ALL">Todos</option>
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Mes</label>
+                <select id="filterMonth" onchange="applyFilters()">
+                    <option value="ALL">Todos</option>
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Desde Fecha</label>
+                <input type="date" id="filterDateFrom" onchange="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label>Hasta Fecha</label>
+                <input type="date" id="filterDateTo" onchange="applyFilters()">
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de KPIs Principales -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">COMPLETADAS (CANTIDAD)</div>
+            <div class="kpi-value" id="kpiCompletedCount">0</div>
+            <div class="kpi-sub" id="kpiCompletedSub">Llamadas atendidas</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">ABANDONADAS (CANTIDAD)</div>
+            <div class="kpi-value" id="kpiAbandonedCount">0</div>
+            <div class="kpi-sub" id="kpiAbandonedSub">Excluye descartes <10s</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">% COMPLETADAS</div>
+            <div class="kpi-value" id="kpiCompletedRate">0.00%</div>
+            <div class="kpi-sub">Completadas / Total Base</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">% TASA ABANDONO</div>
+            <div class="kpi-value" id="kpiAbandonRate">0.00%</div>
+            <div class="kpi-sub">100% - % Completadas</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">BREAK EXTENDIDO (>15 MIN)</div>
+            <div class="kpi-value" id="kpiExceededBreaks">0</div>
+            <div class="kpi-sub" id="kpiExceededBreaksTime">Aplica Haleon & GSK</div>
+        </div>
+    </div>
+
+    <!-- Panel de Inflow por Día de la Semana y por Agente -->
+    <div class="inflow-grid-2col">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="kpi-card" style="border-left-color: #be123c;">
+                <div class="kpi-label">🔥 DÍA CON MAYOR INFLOW (PICO)</div>
+                <div class="kpi-value" id="kpiMaxInflowDay" style="font-size: 22px; color: #be123c;">-</div>
+                <div class="kpi-sub" id="kpiMaxInflowSub">Carga máxima semanal</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: #16a34a;">
+                <div class="kpi-label">🍃 DÍA CON MENOR INFLOW</div>
+                <div class="kpi-value" id="kpiMinInflowDay" style="font-size: 22px; color: #16a34a;">-</div>
+                <div class="kpi-sub" id="kpiMinInflowSub">Menor demanda semanal</div>
+            </div>
+        </div>
+
+        <div class="heatmap-card" style="margin-bottom: 0;">
+            <div class="heatmap-title-text" style="margin-bottom: 10px;">📅 Inflow Total por Día de la Semana</div>
+            <div id="dayInflowTableContainer">
+                <p style="color: var(--text-muted); font-size: 12px; text-align: center;">Carga datos para visualizar el resumen por día.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Matriz de Inflow por Agente y Día -->
+    <div class="heatmap-card">
+        <div class="heatmap-header-wrapper">
+            <span class="heatmap-title-text">👥 Matriz de Inflow por Agente y Día de la Semana</span>
+            <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">Muestra la distribución de llamadas atentas por cada operador</span>
+        </div>
+        <div id="agentDayInflowContainer">
+            <p style="color: var(--text-muted); font-size: 12px; text-align: center;">Carga datos para visualizar la matriz de agentes.</p>
+        </div>
+    </div>
+
+    <!-- Mapa de Calor General por Día y Hora (Totalmente reactivo al Agente) -->
+    <div class="heatmap-card">
+        <div class="heatmap-header-wrapper">
+            <span class="heatmap-title-text">🗺️ Mapa de Calor: Densidad de Inflow & Cobertura por Día y Hora</span>
+            
+            <div class="heatmap-legend">
+                <span style="color: #be123c;">Convención:</span>
+                <div class="legend-item"><span class="legend-box heat-0"></span> 0 (Sin Actividad)</div>
+                <div class="legend-item"><span class="legend-box heat-low"></span> 1 - 2 (Baja)</div>
+                <div class="legend-item"><span class="legend-box heat-mid"></span> 3 - 5 (Media)</div>
+                <div class="legend-item"><span class="legend-box heat-high"></span> > 5 (Pico Alto)</div>
+            </div>
+        </div>
+        <div class="heatmap-grid" id="heatmapContainer">
+            <div class="heatmap-cell heatmap-header">Día / Hora</div>
+            <script>
+                for(let h=7; h<=20; h++) {
+                    document.write(`<div class="heatmap-cell heatmap-header">${h}:00</div>`);
+                }
+            </script>
+        </div>
+    </div>
+
+    <div id="tabsContainer" class="tabs-nav"></div>
+    <div class="table-container" id="tableWrapper">
+        <p style="padding: 30px; text-align: center; color: var(--primary-red); font-weight: 700;">
+            Por favor, carga tu archivo Excel para ver toda la información filtrada.
+        </p>
+    </div>
+
+    <script>
+        let globalWorkbookData = {};
+        let activeTabName = "";
+
+        const AGENT_ALIASES = {
+            'johan rojas': ['johan', 'jrojas', 'rojas'],
+            'kristel azofeifa': ['kristel', 'kazofeifa', 'azofeifa'],
+            'paula garces': ['paula', 'pgarces', 'garces'],
+            'esteban gutierrez': ['esteban', 'egutierrez', 'gutierrez']
+        };
+
+        function formatCellValue(val) {
+            if (val === null || val === undefined) return "";
+            if (val instanceof Date) {
+                return val.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            if (typeof val === 'string' && val.includes('GMT')) {
+                let parts = val.split(' ');
+                for (let p of parts) {
+                    if (p.includes(':') && p.length >= 5) return p;
+                }
+            }
+            return val;
+        }
+
+        function parseTimeToSeconds(timeStr) {
+            if (!timeStr) return 0;
+            if (typeof timeStr === 'number') return Math.round(timeStr * 86400);
+            let str = String(timeStr).trim();
+            if (str.includes('GMT')) str = formatCellValue(str);
+            let parts = str.split(':');
+            if (parts.length === 3) return (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+            if (parts.length === 2) return (+parts[0]) * 60 + (+parts[1]);
+            return 0;
+        }
+
+        function formatSecondsToHMS(secs) {
+            if (!secs || secs <= 0) return "00m";
+            const hrs = Math.floor(secs / 3600);
+            const mins = Math.floor((secs % 3600) / 60);
+            return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+        }
+
+        function parseRowDate(dateVal) {
+            if (!dateVal) return null;
+            if (dateVal instanceof Date) return dateVal;
+            if (typeof dateVal === 'string') {
+                let parts = dateVal.split('/');
+                if (parts.length === 3) {
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+            }
+            return new Date(dateVal);
+        }
+
+        function processWorkbook(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd hh:mm:ss' });
+
+                globalWorkbookData = {};
+                const tabsContainer = document.getElementById('tabsContainer');
+                tabsContainer.innerHTML = "";
+
+                workbook.SheetNames.forEach((sheetName, index) => {
+                    const worksheet = workbook.Sheets[sheetName];
+                    const rawJson = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+                    globalWorkbookData[sheetName] = rawJson;
+
+                    const btn = document.createElement('button');
+                    btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+                    btn.innerText = sheetName;
+                    btn.onclick = () => switchTab(sheetName);
+                    tabsContainer.appendChild(btn);
+
+                    if (index === 0) activeTabName = sheetName;
+                });
+
+                applyFilters();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function switchTab(sheetName) {
+            activeTabName = sheetName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === sheetName);
+            });
+            applyFilters();
+        }
+
+        function applyFilters() {
+            calculateMetrics();
+            renderHeatmap();
+            renderActiveTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterAccount').value = "ALL";
+            document.getElementById('filterAgent').selectedIndex = -1;
+            document.getElementById('filterYear').value = "ALL";
+            document.getElementById('filterMonth').value = "ALL";
+            document.getElementById('filterDateFrom').value = "";
+            document.getElementById('filterDateTo').value = "";
+            applyFilters();
+        }
+
+        function getSelectedAgents() {
+            const select = document.getElementById('filterAgent');
+            return Array.from(select.selectedOptions).map(opt => opt.value.toLowerCase().trim());
+        }
+
+        function matchAgentName(rowVal, selectedAgents) {
+            if (selectedAgents.length === 0) return true;
+            if (!rowVal) return false;
+            const val = String(rowVal).toLowerCase().trim();
+
+            return selectedAgents.some(selected => {
+                if (val.includes(selected) || selected.includes(val)) return true;
+                const aliases = AGENT_ALIASES[selected] || [];
+                return aliases.some(alias => val.includes(alias));
+            });
+        }
+
+        function rowMatchesFilters(row, headers) {
+            const accountFilter = document.getElementById('filterAccount').value.toLowerCase().trim();
+            const selectedAgents = getSelectedAgents();
+            const yearFilter = document.getElementById('filterYear').value;
+            const monthFilter = document.getElementById('filterMonth').value;
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+
+            const agentIdx = headers.findIndex(h => h.includes('agente') || h.includes('teleoperador'));
+            const accountIdx = headers.findIndex(h => h.includes('cuenta') || h.includes('descripcion') || h.includes('campana') || h.includes('nombre'));
+            const dateIdx = headers.findIndex(h => h.includes('fecha'));
+
+            if (accountFilter !== 'all' && accountIdx !== -1) {
+                const accVal = String(row[accountIdx] || "").toLowerCase().trim();
+                if (accVal !== "" && !accVal.includes(accountFilter) && !accountFilter.includes(accVal)) {
+                    return false;
+                }
+            }
+
+            if (selectedAgents.length > 0 && agentIdx !== -1) {
+                if (!matchAgentName(row[agentIdx], selectedAgents)) return false;
+            }
+
+            if (dateIdx !== -1 && (yearFilter !== 'ALL' || monthFilter !== 'ALL' || dateFrom || dateTo)) {
+                const d = parseRowDate(row[dateIdx]);
+                if (d && !isNaN(d.getTime())) {
+                    if (yearFilter !== 'ALL' && d.getFullYear().toString() !== yearFilter) return false;
+                    if (monthFilter !== 'ALL' && (d.getMonth() + 1).toString() !== monthFilter) return false;
+                    if (dateFrom && d < new Date(dateFrom)) return false;
+                    if (dateTo && d > new Date(dateTo)) return false;
+                }
+            }
+
+            return true;
+        }
+
+        function calculateMetrics() {
+            let completedCalls = 0;
+            let realAbandoned = 0;
+            let discardedUnder10s = 0;
+            
+            let exceededBreaks = 0;
+            let exceededBreaksSecsTotal = 0;
+
+            const daysList = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            const dayInflowCounts = { 'Lunes': 0, 'Martes': 0, 'Miércoles': 0, 'Jueves': 0, 'Viernes': 0, 'Sábado': 0, 'Domingo': 0 };
+            const agentDayMatrix = {};
+
+            const connData = globalWorkbookData['Control Conexiones'] || globalWorkbookData[Object.keys(globalWorkbookData)[0]];
+            
+            if (connData && connData.length > 1) {
+                const headers = connData[0].map(h => String(h).toLowerCase().trim());
+                const resultIdx = headers.findIndex(h => h.includes('resultado'));
+                const waitIdx = headers.findIndex(h => h.includes('espera'));
+                const breakIdx = headers.findIndex(h => h.includes('break') || h.includes('descanso'));
+                const accountIdx = headers.findIndex(h => h.includes('cuenta'));
+                const dateIdx = headers.findIndex(h => h.includes('fecha'));
+                const dayColIdx = headers.findIndex(h => h === 'dia' || h.includes('día'));
+                const agentIdx = headers.findIndex(h => h.includes('agente') || h.includes('teleoperador'));
+
+                for (let i = 1; i < connData.length; i++) {
+                    const row = connData[i];
+                    if (!row || row.length === 0) continue;
+
+                    if (!rowMatchesFilters(row, headers)) continue;
+
+                    let dayName = "";
+                    if (dayColIdx !== -1 && row[dayColIdx]) {
+                        const dLetter = String(row[dayColIdx]).toUpperCase().trim();
+                        if (dLetter === 'L') dayName = 'Lunes';
+                        else if (dLetter === 'M' || dLetter === 'K') dayName = 'Martes';
+                        else if (dLetter === 'X' || dLetter === 'MI') dayName = 'Miércoles';
+                        else if (dLetter === 'J') dayName = 'Jueves';
+                        else if (dLetter === 'V') dayName = 'Viernes';
+                        else if (dLetter === 'S') dayName = 'Sábado';
+                        else if (dLetter === 'D') dayName = 'Domingo';
+                    }
+                    if (!dayName && dateIdx !== -1) {
+                        const d = parseRowDate(row[dateIdx]);
+                        if (d && !isNaN(d.getTime())) dayName = daysList[(d.getDay() + 6) % 7];
+                    }
+                    if (dayName) dayInflowCounts[dayName] = (dayInflowCounts[dayName] || 0) + 1;
+
+                    if (agentIdx !== -1 && row[agentIdx] && dayName) {
+                        const agentRaw = String(row[agentIdx]).trim();
+                        if (agentRaw !== "") {
+                            if (!agentDayMatrix[agentRaw]) {
+                                agentDayMatrix[agentRaw] = { 'Lunes': 0, 'Martes': 0, 'Miércoles': 0, 'Jueves': 0, 'Viernes': 0, 'Sábado': 0, 'Domingo': 0, 'TOTAL': 0 };
+                            }
+                            agentDayMatrix[agentRaw][dayName] = (agentDayMatrix[agentRaw][dayName] || 0) + 1;
+                            agentDayMatrix[agentRaw]['TOTAL']++;
+                        }
+                    }
+
+                    if (resultIdx !== -1) {
+                        const resultVal = String(row[resultIdx] || "").toLowerCase();
+                        const waitSecs = waitIdx !== -1 ? parseTimeToSeconds(row[waitIdx]) : 0;
+
+                        if (resultVal.includes('abandonad')) {
+                            if (waitSecs < 10) discardedUnder10s++;
+                            else realAbandoned++;
+                        } else {
+                            completedCalls++;
+                        }
+                    }
+
+                    const accountVal = accountIdx !== -1 ? String(row[accountIdx] || "").toLowerCase() : activeTabName.toLowerCase();
+                    const isHaleonOrGSK = accountVal.includes('haleon') || accountVal.includes('gsk');
+
+                    if (breakIdx !== -1 && isHaleonOrGSK) {
+                        const breakSecs = parseTimeToSeconds(row[breakIdx]);
+                        if (breakSecs > 900) {
+                            exceededBreaks++;
+                            exceededBreaksSecsTotal += (breakSecs - 900);
+                        }
+                    }
+                }
+            }
+
+            let maxDay = "-", maxVal = -1;
+            let minDay = "-", minVal = Infinity;
+
+            Object.keys(dayInflowCounts).forEach(day => {
+                const count = dayInflowCounts[day];
+                if (count > maxVal && count > 0) { maxVal = count; maxDay = day; }
+                if (count < minVal && count > 0) { minVal = count; minDay = day; }
+            });
+
+            const sumCompletadasAbandonadas = completedCalls + realAbandoned;
+            const completedPctVal = sumCompletadasAbandonadas > 0 ? (completedCalls / sumCompletadasAbandonadas) * 100 : 0;
+            const abandonPctVal = sumCompletadasAbandonadas > 0 ? (100 - completedPctVal) : 0;
+
+            document.getElementById('kpiCompletedCount').innerText = completedCalls;
+            document.getElementById('kpiCompletedSub').innerText = `De un total base de ${sumCompletadasAbandonadas}`;
+
+            document.getElementById('kpiAbandonedCount').innerText = realAbandoned;
+            document.getElementById('kpiAbandonedSub').innerText = `${discardedUnder10s} descartadas (<10s)`;
+
+            document.getElementById('kpiCompletedRate').innerText = `${completedPctVal.toFixed(2)}%`;
+            document.getElementById('kpiAbandonRate').innerText = `${abandonPctVal.toFixed(2)}%`;
+
+            document.getElementById('kpiMaxInflowDay').innerText = maxVal > 0 ? `${maxDay}` : "-";
+            document.getElementById('kpiMaxInflowSub').innerText = maxVal > 0 ? `${maxVal} llamadas recibidas` : "Sin registros";
+
+            document.getElementById('kpiMinInflowDay').innerText = minVal !== Infinity ? `${minDay}` : "-";
+            document.getElementById('kpiMinInflowSub').innerText = minVal !== Infinity ? `${minVal} llamadas recibidas` : "Sin registros";
+
+            document.getElementById('kpiExceededBreaks').innerText = exceededBreaks;
+            document.getElementById('kpiExceededBreaksTime').innerText = `Exceso total: ${formatSecondsToHMS(exceededBreaksSecsTotal)}`;
+
+            renderDayInflowTable(dayInflowCounts, sumCompletadasAbandonadas);
+            renderAgentDayMatrix(agentDayMatrix);
+        }
+
+        function renderDayInflowTable(dayCounts, totalSum) {
+            const container = document.getElementById('dayInflowTableContainer');
+            const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+            let html = `<table><thead><tr><th>Día de la Semana</th><th>Llamadas Inflow</th><th>% del Total</th></tr></thead><tbody>`;
+
+            days.forEach(day => {
+                const count = dayCounts[day] || 0;
+                const pct = totalSum > 0 ? ((count / totalSum) * 100).toFixed(1) : "0.0";
+                html += `<tr><td><strong>${day}</strong></td><td>${count}</td><td><span class="badge badge-warning">${pct}%</span></td></tr>`;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function renderAgentDayMatrix(agentMatrix) {
+            const container = document.getElementById('agentDayInflowContainer');
+            const agents = Object.keys(agentMatrix);
+
+            if (agents.length === 0) {
+                container.innerHTML = `<p style="padding: 15px; text-align: center; color: var(--text-muted);">No hay información de agentes para mostrar en los filtros seleccionados.</p>`;
+                return;
+            }
+
+            const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+            let html = `<table><thead><tr><th>Agente / Teleoperador</th>`;
+            days.forEach(d => html += `<th>${d}</th>`);
+            html += `<th>Total Inflow</th></tr></thead><tbody>`;
+
+            agents.forEach(agent => {
+                html += `<tr><td><strong>${agent}</strong></td>`;
+                days.forEach(d => {
+                    const count = agentMatrix[agent][d] || 0;
+                    let style = count > 0 ? "font-weight: 700; color: var(--primary-red);" : "color: #94a3b8;";
+                    html += `<td style="${style}">${count}</td>`;
+                });
+                html += `<td><span class="badge badge-ok">${agentMatrix[agent]['TOTAL']}</span></td></tr>`;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function renderHeatmap() {
+            const container = document.getElementById('heatmapContainer');
+            const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            const matrix = {};
+
+            days.forEach(d => { matrix[d] = {}; for(let h=7; h<=20; h++) matrix[d][h] = 0; });
+
+            const connData = globalWorkbookData['Control Conexiones'] || globalWorkbookData[Object.keys(globalWorkbookData)[0]];
+            if (connData && connData.length > 1) {
+                const headers = connData[0].map(h => String(h).toLowerCase().trim());
+                const dateIdx = headers.findIndex(h => h.includes('fecha'));
+                const timeIdx = headers.findIndex(h => h.includes('hora'));
+
+                for (let i = 1; i < connData.length; i++) {
+                    const row = connData[i];
+                    if (!row || !rowMatchesFilters(row, headers)) continue;
+
+                    const d = parseRowDate(row[dateIdx]);
+                    if (d && !isNaN(d.getTime())) {
+                        let dayName = days[(d.getDay() + 6) % 7];
+                        let hour = d.getHours();
+
+                        if (timeIdx !== -1 && row[timeIdx]) {
+                            let timeSecs = parseTimeToSeconds(row[timeIdx]);
+                            hour = Math.floor(timeSecs / 3600);
+                        }
+
+                        if (hour >= 7 && hour <= 20) {
+                            matrix[dayName][hour] = (matrix[dayName][hour] || 0) + 1;
+                        }
+                    }
+                }
+            }
+
+            let html = `<div class="heatmap-cell heatmap-header">Día / Hora</div>`;
+            for(let h=7; h<=20; h++) html += `<div class="heatmap-cell heatmap-header">${h}:00</div>`;
+
+            days.forEach(day => {
+                html += `<div class="heatmap-cell heatmap-header">${day}</div>`;
+                for(let h=7; h<=20; h++) {
+                    const count = matrix[day][h] || 0;
+                    let heatClass = 'heat-0';
+                    if (count > 0 && count <= 2) heatClass = 'heat-low';
+                    else if (count > 2 && count <= 5) heatClass = 'heat-mid';
+                    else if (count > 5) heatClass = 'heat-high';
+
+                    html += `<div class="heatmap-cell ${heatClass}">${count}</div>`;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderActiveTable() {
+            const tableWrapper = document.getElementById('tableWrapper');
+            const data = globalWorkbookData[activeTabName];
+
+            if (!data || data.length === 0) {
+                tableWrapper.innerHTML = `<p style="padding: 20px; text-align: center;">No hay información en <strong>${activeTabName}</strong>.</p>`;
+                return;
+            }
+
+            const rawHeaders = data[0];
+            const lowerHeaders = rawHeaders.map(h => String(h).toLowerCase().trim());
+
+            let html = `<table><thead><tr>`;
+            rawHeaders.forEach(h => html += `<th>${h || ""}</th>`);
+            html += `<th>Control Excedido Conexus</th></tr></thead><tbody>`;
+
+            let renderedRows = 0;
+
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue;
+                if (!rowMatchesFilters(row, lowerHeaders)) continue;
+
+                renderedRows++;
+
+                let rowClass = "";
+                let alertBadges = [];
+
+                const waitIdx = lowerHeaders.findIndex(h => h.includes('espera'));
+                const resultIdx = lowerHeaders.findIndex(h => h.includes('resultado'));
+                const breakIdx = lowerHeaders.findIndex(h => h.includes('break') || h.includes('descanso'));
+                const accountIdx = lowerHeaders.findIndex(h => h.includes('cuenta'));
+
+                const accountVal = accountIdx !== -1 ? String(row[accountIdx] || "").toLowerCase() : activeTabName.toLowerCase();
+                const isHaleonOrGSK = accountVal.includes('haleon') || accountVal.includes('gsk');
+
+                if (resultIdx !== -1) {
+                    const resultVal = String(row[resultIdx] || "").toLowerCase();
+                    const waitSecs = waitIdx !== -1 ? parseTimeToSeconds(row[waitIdx]) : 0;
+
+                    if (resultVal.includes('abandonad') && waitSecs < 10) {
+                        alertBadges.push(`<span class="badge badge-warning">⚠️ Descartada (<10s)</span>`);
+                    } else if (resultVal.includes('abandonad')) {
+                        alertBadges.push(`<span class="badge badge-danger">🔴 Abandono Real</span>`);
+                    }
+                }
+
+                if (breakIdx !== -1 && isHaleonOrGSK && parseTimeToSeconds(row[breakIdx]) > 900) {
+                    alertBadges.push(`<span class="badge badge-danger">⏱️ Break >15m</span>`);
+                    rowClass = "style='background-color: #ffe4e6;'";
+                }
+
+                if (alertBadges.length === 0) {
+                    alertBadges.push(`<span class="badge badge-ok">🟢 OK Ejecutado</span>`);
+                }
+
+                html += `<tr ${rowClass}>`;
+                for (let j = 0; j < rawHeaders.length; j++) {
+                    html += `<td>${formatCellValue(row[j])}</td>`;
+                }
+                html += `<td>${alertBadges.join(' ')}</td>`;
+                html += `</tr>`;
+            }
+
+            html += `</tbody></table>`;
+
+            if (renderedRows === 0) {
+                tableWrapper.innerHTML = `<p style="padding: 20px; text-align: center; color: var(--text-muted);">No hay registros para los filtros en <strong>${activeTabName}</strong>.</p>`;
+            } else {
+                tableWrapper.innerHTML = html;
+            }
+        }
+    </script>
+</body>
+</html>
